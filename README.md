@@ -1,2 +1,1 @@
-# sungsoo
-homework
+KH-SQL
