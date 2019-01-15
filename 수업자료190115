@@ -1,0 +1,136 @@
+-- 데이터 딕셔너리 (데이터 사전)
+-- 사용자가 생성한 모든 객체정보는 테이블 단위로 저장되어 있다.
+-- 예를 들면, 사용자가 설정한 제약조건도 저장되고 있다.
+-- USER_CONSTRAINTS가 제약조건을 저장하는 딕셔너리
+
+DESC USER_CONSTRAINTS;
+SELECT CONSTRAINT_NAME, CONSTRAINT_TYPE, TABLE_NAME
+FROM USER_CONSTRAINTS
+WHERE TABLE_NAME = 'PHONEBOOK';
+
+-- CONSTRATINT TYPE 
+-- P : PRIMARY KEY, U : UNIQUE KEY, C : CHECK, NOT NULL, R : FOREIGN KEY
+
+-- 서브쿼리를 이용해서 테이블을 만들 때, 데이터는 복사하지 않고,
+-- 테이블 구조만 복사하고자 할 때
+-- 서브쿼리의 WHERE 절에 WHERE 1 = 0 하면 됨.
+
+CREATE TABLE DEPT_COPY
+AS SELECT * FROM DEPARTMENT
+WHERE 1 = 0;
+
+SELECT * FROM DEPT_COPY;
+
+DESC DEPT_COPY;
+
+-- 서브쿼리로 새 테이블을 만들 때, 서브쿼리의 컬럼명을 사용하지 않고
+-- 새 테이블에서 컬럼명을 다르게 구성할 수도 있다.
+
+-- 첫번째 방법
+CREATE TABLE JOB_COPY (직급코드, 직급명, 최저급여, 최고급여)
+AS SELECT * FROM JOB;
+
+DESC JOB_COPY;
+
+SELECT * FROM JOB_COPY;
+
+--두번째 방법
+-- 별칭 주고싶은것만 줄 수 있음.
+CREATE TABLE DCOPY
+AS SELECT DEPT_ID DID, DEPT_NAME DNAME;
+
+DESC DCOPY;
+
+SELECT * FROM DCOPY;
+
+
+--서브쿼리로 테이블 만들 때, 컬럼명을 바꾸면서 제약조건도 추가 가능.
+--하지만 외래키 제약조건은 추가 못함.
+CREATE TABLE TSUB3(EID PRIMARY KEY, ENAME , SALARY /*CHECK(SALARY > 2000000)*/, DID /*REFERENCES DEPARTMENT*/, JTITLE /*NOT NULL*/) 
+AS SELECT EMP_ID, EMP_NAME, SALARY, DEPT_ID, JOB_TITLE
+   FROM EMPLOYEE
+   LEFT JOIN DEPARTMENT USING(DEPT_ID)
+   LEFT JOIN JOB USING(JOB_ID);
+   
+--JTITLE NOT NULL이 안되는 이유 :
+--EMLOYEE로 LEFT 조인했는데 JOB_ID에 NULL값이 이미 있음.
+
+--CHECK(SALARY > 2000000) 안되는 이유 : 
+--급여에 2백만보다 작은 값이 존재함.
+--그러므로 서브쿼리에서 처리해야함.
+
+--해결
+CREATE TABLE TSUB3(EID PRIMARY KEY, ENAME , SALARY /*CHECK(SALARY > 2000000)*/, DID /*REFERENCES DEPARTMENT*/, JTITLE NOT NULL) 
+AS SELECT EMP_ID, EMP_NAME, SALARY, DEPT_ID, NVL(JOB_TITLE, '미정')
+   FROM EMPLOYEE
+   LEFT JOIN DEPARTMENT USING(DEPT_ID)
+   LEFT JOIN JOB USING(JOB_ID)
+   WHERE SALARY > 2000000;
+   
+   
+DROP TABLE TSUB3;  
+   
+SELECT * FROM TSUB3;
+
+
+-- **********************************************************************
+-- INSERT 문
+-- 테이블에 새 행을 추가하는 구문임
+-- 새로운 데이터 기록 저장시 사용
+/*
+INSERT INTO 테이블명 [(컬럼명, 컬럼명, ....)]
+VALUES(기록할 값, 기록할 값, ....);
+*/
+
+CREATE TABLE DEPT3 (
+    DEPTID CHAR(2),
+    DEPTNAME VARCHAR2(20)
+);
+
+SELECT COUNT(*) FROM DEPT3; -- 0개
+
+INSERT INTO DEPT3
+VALUES('10', '회계팀');
+
+SELECT COUNT(*) FROM DEPT3; -- 1개
+
+INSERT INTO DEPT3
+VALUES('20', '인사팀');
+
+SELECT COUNT(*) FROM DEPT3; -- 2개
+
+SELECT * FROM DEPT3;
+
+COMMIT; -- 저장 완료함
+
+INSERT INTO EMPLOYEE (EMP_ID, EMP_NO, EMP_NAME, EMAIL, PHONE,
+                        HIRE_DATE, JOB_ID, SALARY, BONUS_PCT,
+                        MARRIAGE, MGR_ID, DEPT_ID)
+VALUES ('900', '811122-1458712', '오윤하', 'oyuha@kh.org', '01012345678',
+        DEFAULT, 'J7', 3000000, NULL, DEFAULT, '176', '90');
+    
+SELECT * FROM EMPLOYEE;
+
+ROLLBACK;
+
+-- 컬럼명 생략되면, 테이블의 전체 행에 값 기록해야함
+INSERT INTO EMPLOYEE
+VALUES('777', '이병언', '811122-1475624', 'LEEBH@kh.org', '01012345678', SYSDATE, 'J6', 3500000, NULL,
+        DEFAULT, NULL, NULL);
+
+-- 서브쿼리를 이용해서 INSERT 할 수 있다.
+-- VALUES 사용하지 않는다.
+CREATE TABLE EMP(
+    EMP_ID CHAR(3),
+    EMP_NAME VARCHAR2(20),
+    DEPT_NAME VARCHAR2(20) 
+);
+
+INSERT INTO EMP
+(SELECT EMP_ID, EMP_NAME, DEPT_NAME
+    FROM EMPLOYEE
+    LEFT JOIN DEPARTMENT USING (DEPT_ID))
+;
+
+SELECT * FROM EMP;
+
