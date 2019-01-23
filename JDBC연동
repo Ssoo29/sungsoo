@@ -3,3 +3,11 @@ C:\oraclexe\app\oracle에서 ojdbc6 찾아서 복사
 C:\Program Files\Java\jdk1.8.0_191\jre\lib\ext 폴더에 ojdbc6 파일 붙여넣기
 
 프로젝트명 오른쪽 버튼 >> properties >> java build path >> libraries >> Add Externa JARS >> 붙여넣은 ojdbc6 클릭(3번째줄 위치)
+
+
+CREATE SEQUENCE EMPID_SEQ
+START WITH 211
+INCREMENT BY 1
+MAXVALUE 999
+NOCYCLE
+NOCACHE;
